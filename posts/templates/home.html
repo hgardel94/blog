@@ -1,15 +1,17 @@
-
+{% extends 'index.html' %}
 {% block content %}
-<h1>Home</h1>
-<ul>
-    {% for post in posts %}
-    <a href="{% url 'post_detail' post.id %}">
-        <li>
-            {{post.title}}
-            <p>{{post.content|truncatechars:140}}</p>
-        </li>
-    </a>
+<h1 class="text-center">Posts</h1>
+<section class="container py-3">
+    <ul>
+        {% for post in posts %}
+        <a href="{% url 'post_detail' post.id %}">
+            <li>
+                {{post.title}}
+                <p>{{post.content|truncatechars:140}}</p>
+            </li>
+        </a>
 
-    {% endfor %}
-</ul>
+        {% endfor %}
+    </ul>
+</section>
 {% endblock %}

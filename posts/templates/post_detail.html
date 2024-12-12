@@ -1,11 +1,14 @@
+{% extends 'index.html' %}
 {% block content %}
-<h1>Post details</h1>
-<ul>
-    
-    <li>
-        {{post.title}}
-        <p>{{post.content}}</p>
-    </li>
+<section class="container py-2">
+    <h2>{{post.title}}</h2>
+    <p>{{post.content}}</p>
+</section>
 
-</ul>
+
+<div class="text-center">
+    <a href="{% url 'home' %}" class="btn btn-dark">
+        <h3>Back to posts</h3>
+    </a>
+</div>
 {% endblock %}
