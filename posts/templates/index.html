@@ -13,6 +13,19 @@
 <body>
 
     <ul>
+        <a href="/">
+            <li>
+                Home
+            </li>
+        </a>
+        {% if user.is_authenticated %}
+        <a href="/logout">
+            <li>
+                Logout
+            </li>
+        </a>
+        {% else %}
+
         <a href="/signup">
             <li>
                 Signup
@@ -23,6 +36,7 @@
                 Signin
             </li>
         </a>
+        {% endif %}
     </ul>
     {% block content %}
 
