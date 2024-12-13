@@ -23,6 +23,16 @@ def post_detail(request, post_id):
     })
 
 
+def validate_fields_empty(request):
+    if not request.POST['username'] or not request.POST['password1'] or not request.POST['password2']:
+        return False
+    return True
+
+
+def is_match(request):
+    return request.POST['password1'] == request.POST['password2']
+
+
 def signup(request):
 
     if request.method == 'GET':
@@ -30,33 +40,42 @@ def signup(request):
             'form': UserCreationForm
         })
 
-    else:
-        if not request.POST['username'] or not request.POST['password1'] or not request.POST['password2']:
+    if not validate_fields_empty(request):
+        return render(request, 'signup.html', {
+            'form': UserCreationForm,
+            'error': 'You need to complete all the fields'
+
+        })
+
+    if is_match(request):
+        try:
+            user = User.objects.create_user(username=request.POST['username'],
+                                            password=request.POST['password1'])
+            user.save()
+            login(request, user)
+            return redirect('home')
+
+        except IntegrityError:
             return render(request, 'signup.html', {
                 'form': UserCreationForm,
-                'error': 'You need to complete all the fields'
-
+                'error': 'User already exist'
             })
 
-        elif request.POST['password1'] == request.POST['password2']:
-            try:
-                user = User.objects.create_user(username=request.POST['username'],
-                                                password=request.POST['password1'])
-                user.save()
-                login(request, user)
-                return redirect('home')
+    return render(request, 'signup.html', {
+        'form': UserCreationForm,
+        'error': 'Password do not match'
+    })
 
-            except IntegrityError:
-                return render(request, 'signup.html', {
-                    'form': UserCreationForm,
-                    'error': 'User already exist'
-                })
 
-        else:
-            return render(request, 'signup.html', {
-                'form': UserCreationForm,
-                'error': 'Password do not match'
-            })
+def validate_request(request):
+    if not request.POST['username'] or not request.POST['password']:
+        return False
+    return True
+
+
+def is_authenticate(request):
+    return authenticate(request, username=request.POST['username'],
+                        password=request.POST['password'])
 
 
 def signin(request):
@@ -65,24 +84,21 @@ def signin(request):
             'form': AuthenticationForm
         })
 
-    else:
-        if not request.POST['username'] or not request.POST['password']:
-            return render(request, 'signin.html', {
-                'form': AuthenticationForm,
-                'error': 'You need to complete all the fields'
-            })
-        else:
-            user = authenticate(request, username=request.POST['username'],
-                                password=request.POST['password'])
-            if user is None:
-                return render(request, 'signin.html', {
-                    'form': AuthenticationForm,
-                    'error': 'Username or password is incorrect'
-                })
+    if not validate_request(request):
+        return render(request, 'signin.html', {
+            'form': AuthenticationForm,
+            'error': 'You need to complete all the fields'
+        })
 
-            else:
-                login(request, user)
-                return redirect('home')
+    user = is_authenticate(request)
+    if user is None:
+        return render(request, 'signin.html', {
+            'form': AuthenticationForm,
+            'error': 'Username or password is incorrect'
+        })
+
+    login(request, user)
+    return redirect('home')
 
 
 def signout(request):
