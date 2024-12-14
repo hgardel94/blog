@@ -5,15 +5,22 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
 from django.http.response import HttpResponseRedirect
 from django.db import IntegrityError
-from django.urls import reverse
+from django.core.paginator import Paginator
 
 # Create your views here.
 
 
 def home(request):
-    posts = Post.objects.all()
+    posts_list = Post.objects.all()
+    paginator = Paginator(posts_list, 2)
+    page = request.GET.get("page") or 1
+    posts = paginator.get_page(page)
+    current_page = int(page)
+    pages = range(1, posts.paginator.num_pages + 1)
     return render(request, 'home.html', {
-        'posts': posts
+        'posts': posts,
+        'pages': pages,
+        'current_page': current_page
     })
 
 

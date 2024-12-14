@@ -6,7 +6,7 @@ class Post(models.Model):
     title = models.CharField(max_length=80)
     content = models.TextField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
-    likes = models.ManyToManyField(User, related_name='post_likes')
+    likes = models.ManyToManyField(User, related_name='post_likes', blank=True)
     
     def __str__(self):
         return self.title
