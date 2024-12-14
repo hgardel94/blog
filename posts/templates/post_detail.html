@@ -27,8 +27,8 @@
         {% endif %}
     </form>
     <br><br>
-    <a href="{% url 'home' %}" class="btn btn-dark">
-        <h3>Back to posts</h3>
-    </a>
+    <form action="{% url 'home' %}">
+    <button class="btn btn-secondary">Back to posts</button>
+    </form>
 </div>
 {% endblock %}

@@ -12,7 +12,7 @@ from django.core.paginator import Paginator
 
 def home(request):
     posts_list = Post.objects.all()
-    paginator = Paginator(posts_list, 2)
+    paginator = Paginator(posts_list, 10)
     page = request.GET.get("page") or 1
     posts = paginator.get_page(page)
     current_page = int(page)
@@ -125,6 +125,5 @@ def like_post(request, post_id):
     if post.likes.filter(id=request.user.id).exists():
         post.likes.remove(request.user)
         return redirect('/post_detail/' + str(post_id))
-
     post.likes.add(request.user)
     return redirect('/post_detail/' + str(post_id))
