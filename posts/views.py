@@ -3,8 +3,9 @@ from .models import Post
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
-from django.http.response import HttpResponse
+from django.http.response import HttpResponseRedirect
 from django.db import IntegrityError
+from django.urls import reverse
 
 # Create your views here.
 
@@ -18,8 +19,14 @@ def home(request):
 
 def post_detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
+    total_likes = post.total_likes()
+    liked = False
+    if post.likes.filter(id=request.user.id).exists():
+        liked = True
     return render(request, 'post_detail.html', {
-        'post': post
+        'post': post,
+        'total_likes': total_likes,
+        'liked': liked
     })
 
 
@@ -104,3 +111,13 @@ def signin(request):
 def signout(request):
     logout(request)
     return redirect('home')
+
+
+def like_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    if post.likes.filter(id=request.user.id).exists():
+        post.likes.remove(request.user)
+        return redirect('/post_detail/' + str(post_id))
+
+    post.likes.add(request.user)
+    return redirect('/post_detail/' + str(post_id))
