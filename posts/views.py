@@ -37,13 +37,13 @@ def post_detail(request, post_id):
     })
 
 
-def validate_fields_empty(request):
+def validate_empty_fields(request):
     if not request.POST['username'] or not request.POST['password1'] or not request.POST['password2']:
         return False
     return True
 
 
-def is_match(request):
+def password_match_validator(request):
     return request.POST['password1'] == request.POST['password2']
 
 
@@ -54,18 +54,17 @@ def signup(request):
             'form': UserCreationForm
         })
 
-    if not validate_fields_empty(request):
+    if not validate_empty_fields(request):
         return render(request, 'signup.html', {
             'form': UserCreationForm,
             'error': 'You need to complete all the fields'
 
         })
 
-    if is_match(request):
+    if password_match_validator(request):
         try:
             user = User.objects.create_user(username=request.POST['username'],
                                             password=request.POST['password1'])
-            user.save()
             login(request, user)
             return redirect('home')
 
@@ -120,10 +119,13 @@ def signout(request):
     return redirect('home')
 
 
-def like_post(request, post_id):
+def give_like_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
-    if post.likes.filter(id=request.user.id).exists():
-        post.likes.remove(request.user)
-        return redirect('/post_detail/' + str(post_id))
     post.likes.add(request.user)
+    return redirect('/post_detail/' + str(post_id))
+
+
+def remove_like_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    post.likes.remove(request.user)
     return redirect('/post_detail/' + str(post_id))
