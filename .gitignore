@@ -29,3 +29,5 @@ media/
 # Ignorar archivos de desarrollo local
 *.local
 *.pyc
+*.pyc
+__pycache__/
