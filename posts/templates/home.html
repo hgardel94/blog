@@ -33,8 +33,11 @@
                         {% if post.likes.count == 1 and user in post.likes.all %}
                             You liked 
                         {% endif %}
-                        {% if user in post.likes.all and post.likes.count >= 2 %}
-                            You and {{ post.likes_minus_one }} others liked this
+                        {% if user in post.likes.all and post.likes.count == 2 %}
+                            You and {{ post.likes_minus_one }} other person liked this
+                        {% endif %}
+                        {% if user in post.likes.all and post.likes.count >= 3 %}
+                            You and {{post.likes_minus_one}} others liked this
                         {% endif %}
                         {% if not user in post.likes.all and post.likes.count >= 2 %}
                             {{ post.likes.count }} people liked this
