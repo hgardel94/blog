@@ -32,9 +32,11 @@ $(document).on('click', '.like-button', function(e) {
 function updateLikeMessage(element, likes, liked) {
     if (likes === 0) {
         element.text('Be the first to like this');
-    } else if (likes === 1) {
+    } 
+    if (likes === 1) {
         element.text(liked ? 'You liked this' : '1 person liked this');
-    } else {
+    } 
+    if (likes > 1) {
         element.text(liked ? `You and ${likes - 1} others liked this` : `${likes} people liked this`);
     }
 }
