@@ -1,0 +1,35 @@
+<div class="row mt-3 justify-conter-center">
+    <nav>
+        <ul class="pagination">
+            {% if posts.has_previous %}
+
+            <li class="page-item">
+                <a class="page-link" href="?page=1"> First page</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{posts.previous_page_number}}">&laquo;</a>
+            </li>
+
+            {% endif %}
+
+            <ul class="pagination">
+                {% for page in pages %}
+                <li class="page-item {% if current_page == page %} active {% endif %}">
+                    <a class="page-link" href="?page={{ page }}">{{ page }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+
+            {% if posts.has_next %}
+
+            <li class="page-item">
+                <a class="page-link" href="?page={{posts.next_page_number}}">&raquo;</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{posts.paginator.num_pages}}"> Last page</a>
+            </li>
+
+            {% endif %}
+        </ul>
+    </nav>
+</div>

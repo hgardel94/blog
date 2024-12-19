@@ -1,16 +1,21 @@
 {% extends 'index.html' %}
 {% block content %}
-<h1 class="text-center">Posts</h1>
+<h1 class="text-center mt-5">Posts</h1>
 <section class="container py-3">
     <ul>
         {% for post in posts %}
-        <a href="{% url 'post_detail' post.id %}">
-            <li>
-                {{post.title}}
-                <p>{{post.content|truncatechars:140}}</p>
-            </li>
-        </a>
+        <main class="container py-3">
+            <section class="card card-body">
+                <a href="{% url 'post_detail' post.id %}">
+
+                    <h4> {{post.title}}</h4>
+                    <p>{{post.content|truncatechars:140}}</p>
+
+                </a>
+            </section>
+        </main>
         {% endfor %}
+        {% include 'paginator.html' %}
     </ul>
 </section>
 {% endblock %}

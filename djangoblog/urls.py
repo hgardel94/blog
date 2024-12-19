@@ -21,5 +21,10 @@ from posts import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
-    path('postdetail/<int:post_id>/', views.post_detail, name='post_detail'),
+    path('signup/', views.signup, name='signup'),
+    path('signin/', views.signin, name='signin'),
+    path('logout/', views.signout, name='signout'),
+    path('post_detail/<int:post_id>/', views.post_detail, name='post_detail'),
+    path('like/<int:post_id>/', views.like_post, name='like_post'),
+    
 ]
