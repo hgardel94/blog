@@ -28,3 +28,4 @@ media/
 
 # Ignorar archivos de desarrollo local
 *.local
+*.pyc
