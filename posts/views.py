@@ -94,12 +94,6 @@ def validate_request(request):
         return False
     return True
 
-
-def is_authenticate(request):
-    return authenticate(request, username=request.POST['username'],
-                        password=request.POST['password'])
-
-
 def signin(request):
     if request.method == 'GET':
         return render(request, 'signin.html', {
@@ -111,13 +105,14 @@ def signin(request):
             'form': AuthenticationForm,
             'error': 'You need to complete all the fields'
         })
-
-    user = is_authenticate(request)
+        
+    user = authenticate(request, username=request.POST['username'],
+                        password=request.POST['password'])
     if user is None:
-        return render(request, 'signin.html', {
-            'form': AuthenticationForm,
+            return render(request, 'signin.html', {
+                'form': AuthenticationForm,
             'error': 'Username or password is incorrect'
-        })
+            })
 
     login(request, user)
     return redirect('home')
@@ -128,14 +123,8 @@ def signout(request):
     return redirect('home')
 
 
-
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-from .models import Post
-
 @login_required(login_url='/')
-def give_like_post(request, post_id):
+def like_post(request, post_id):
     if request.method == 'GET':
         post = get_object_or_404(Post, pk=post_id)
         if request.user not in post.likes.all():
@@ -144,7 +133,7 @@ def give_like_post(request, post_id):
         else:
             liked = False
         post.save()
-        likes = post.likes.count()  # Asegúrate de actualizar el conteo de likes
+        likes = post.likes.count()  
         return JsonResponse({'liked': liked, 'likes': likes})
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
@@ -158,7 +147,7 @@ def remove_like_post(request, post_id):
         else:
             liked = True
         post.save()
-        likes = post.likes.count()  # Asegúrate de actualizar el conteo de likes
+        likes = post.likes.count()  
         return JsonResponse({'liked': liked, 'likes': likes})
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 

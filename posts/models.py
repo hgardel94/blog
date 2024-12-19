@@ -7,7 +7,6 @@ class Post(models.Model):
     content = models.TextField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
     likes = models.ManyToManyField(User, through='Like', related_name='post_likes', blank=True)
-
     def __str__(self):
         return self.title
 
@@ -23,3 +22,5 @@ class Like(models.Model):
 
     class Meta:
         db_table = 'posts_post_likes'
+
+
