@@ -3,11 +3,15 @@ from .models import Post
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
-from django.http.response import HttpResponseRedirect
+from django.http.response import JsonResponse
 from django.db import IntegrityError
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
+
 
 # Create your views here.
+
+
 
 
 def home(request):
@@ -17,10 +21,15 @@ def home(request):
     posts = paginator.get_page(page)
     current_page = int(page)
     pages = range(1, posts.paginator.num_pages + 1)
+    for post in posts:
+        if request.user in post.likes.all():
+            post.likes_minus_one = post.likes.count() - 1
+        else:
+            post.likes_minus_one = post.likes.count()
     return render(request, 'home.html', {
         'posts': posts,
         'pages': pages,
-        'current_page': current_page
+        'current_page': current_page,
     })
 
 
@@ -119,13 +128,38 @@ def signout(request):
     return redirect('home')
 
 
+
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from .models import Post
+
+@login_required(login_url='/')
 def give_like_post(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    post.likes.add(request.user)
-    return redirect('/post_detail/' + str(post_id))
+    if request.method == 'GET':
+        post = get_object_or_404(Post, pk=post_id)
+        if request.user not in post.likes.all():
+            post.likes.add(request.user)
+            liked = True
+        else:
+            liked = False
+        post.save()
+        likes = post.likes.count()  # Asegúrate de actualizar el conteo de likes
+        return JsonResponse({'liked': liked, 'likes': likes})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
 
-
+@login_required(login_url='/')
 def remove_like_post(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    post.likes.remove(request.user)
-    return redirect('/post_detail/' + str(post_id))
+    if request.method == 'GET':
+        post = get_object_or_404(Post, pk=post_id)
+        if request.user in post.likes.all():
+            post.likes.remove(request.user)
+            liked = False
+        else:
+            liked = True
+        post.save()
+        likes = post.likes.count()  # Asegúrate de actualizar el conteo de likes
+        return JsonResponse({'liked': liked, 'likes': likes})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
