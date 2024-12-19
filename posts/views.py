@@ -3,11 +3,15 @@ from .models import Post
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
-from django.http.response import HttpResponseRedirect
+from django.http.response import JsonResponse
 from django.db import IntegrityError
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
+
 
 # Create your views here.
+
+
 
 
 def home(request):
@@ -17,10 +21,15 @@ def home(request):
     posts = paginator.get_page(page)
     current_page = int(page)
     pages = range(1, posts.paginator.num_pages + 1)
+    for post in posts:
+        if request.user in post.likes.all():
+            post.likes_minus_one = post.likes.count() - 1
+        else:
+            post.likes_minus_one = post.likes.count()
     return render(request, 'home.html', {
         'posts': posts,
         'pages': pages,
-        'current_page': current_page
+        'current_page': current_page,
     })
 
 
@@ -37,13 +46,13 @@ def post_detail(request, post_id):
     })
 
 
-def validate_fields_empty(request):
+def validate_empty_fields(request):
     if not request.POST['username'] or not request.POST['password1'] or not request.POST['password2']:
         return False
     return True
 
 
-def is_match(request):
+def password_match_validator(request):
     return request.POST['password1'] == request.POST['password2']
 
 
@@ -54,18 +63,17 @@ def signup(request):
             'form': UserCreationForm
         })
 
-    if not validate_fields_empty(request):
+    if not validate_empty_fields(request):
         return render(request, 'signup.html', {
             'form': UserCreationForm,
             'error': 'You need to complete all the fields'
 
         })
 
-    if is_match(request):
+    if password_match_validator(request):
         try:
             user = User.objects.create_user(username=request.POST['username'],
                                             password=request.POST['password1'])
-            user.save()
             login(request, user)
             return redirect('home')
 
@@ -86,12 +94,6 @@ def validate_request(request):
         return False
     return True
 
-
-def is_authenticate(request):
-    return authenticate(request, username=request.POST['username'],
-                        password=request.POST['password'])
-
-
 def signin(request):
     if request.method == 'GET':
         return render(request, 'signin.html', {
@@ -103,13 +105,14 @@ def signin(request):
             'form': AuthenticationForm,
             'error': 'You need to complete all the fields'
         })
-
-    user = is_authenticate(request)
+        
+    user = authenticate(request, username=request.POST['username'],
+                        password=request.POST['password'])
     if user is None:
-        return render(request, 'signin.html', {
-            'form': AuthenticationForm,
+            return render(request, 'signin.html', {
+                'form': AuthenticationForm,
             'error': 'Username or password is incorrect'
-        })
+            })
 
     login(request, user)
     return redirect('home')
@@ -120,10 +123,32 @@ def signout(request):
     return redirect('home')
 
 
+@login_required(login_url='/')
 def like_post(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    if post.likes.filter(id=request.user.id).exists():
-        post.likes.remove(request.user)
-        return redirect('/post_detail/' + str(post_id))
-    post.likes.add(request.user)
-    return redirect('/post_detail/' + str(post_id))
+    if request.method == 'GET':
+        post = get_object_or_404(Post, pk=post_id)
+        if request.user not in post.likes.all():
+            post.likes.add(request.user)
+            liked = True
+        else:
+            liked = False
+        post.save()
+        likes = post.likes.count()  
+        return JsonResponse({'liked': liked, 'likes': likes})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+@login_required(login_url='/')
+def remove_like_post(request, post_id):
+    if request.method == 'GET':
+        post = get_object_or_404(Post, pk=post_id)
+        if request.user in post.likes.all():
+            post.likes.remove(request.user)
+            liked = False
+        else:
+            liked = True
+        post.save()
+        likes = post.likes.count()  
+        return JsonResponse({'liked': liked, 'likes': likes})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+

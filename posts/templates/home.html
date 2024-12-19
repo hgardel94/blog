@@ -1,21 +1,58 @@
 {% extends 'index.html' %}
+
 {% block content %}
 <h1 class="text-center mt-5">Posts</h1>
 <section class="container py-3">
-    <ul>
-        {% for post in posts %}
-        <main class="container py-3">
-            <section class="card card-body">
-                <a href="{% url 'post_detail' post.id %}">
+    {% for post in posts %}
+    <main class="container py-3">
+        <section class="card card-body">
 
-                    <h4> {{post.title}}</h4>
-                    <p>{{post.content|truncatechars:140}}</p>
+            <h2><a href="{% url 'post_detail' post.id %}">{{ post.title }}</a></h2>
+            <p>{{ post.content|truncatewords:30 }}</p>
 
-                </a>
-            </section>
-        </main>
-        {% endfor %}
-        {% include 'paginator.html' %}
-    </ul>
+            {% if user.is_authenticated %}
+            <div id="post-{{ post.id }}">
+                <div class="d-flex align-items-center">
+                    {% if user in post.likes.all %}
+                    <button class="btn btn-link p-0 like-button" data-post="{{ post.id }}" data-liked="true">
+                        <i class="bi bi-heart-fill text-danger"></i>
+                    </button>
+                    {% else %}
+                    <button class="btn btn-link p-0 like-button" data-post="{{ post.id }}" data-liked="false">
+                        <i class="bi bi-heart"></i>
+                    </button>
+                    {% endif %}
+                    
+                    <p class="like-message ms-2 mb-0">
+                        {% if post.likes.count == 0 %}
+                            Be the first to like this
+                        {% elif post.likes.count == 1 %}
+                            {% if user in post.likes.all %}
+                                You liked this
+                        {% else %}
+                            1 person liked this
+                        {% endif %}
+                            {% else %}
+                                {% if user in post.likes.all %}
+                                    You and {{ post.likes_minus_one }} others liked this
+                                {% else %}
+                                    {{ post.likes.count }} people liked this
+                                {% endif %}
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </section>
+    </main>
 </section>
+{% endfor %}
+<div class="align-items-center d-flex justify-content-center">
+    {% include 'paginator.html' %}
+</div>
+</div>
+{% endblock %}
+{% block script %}
+{% load static %}
+<script src="{% static 'js/likes.js' %}"></script>
 {% endblock %}
