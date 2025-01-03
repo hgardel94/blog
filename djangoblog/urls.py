@@ -27,5 +27,7 @@ urlpatterns = [
     path('post_detail/<int:post_id>/', views.post_detail, name='post_detail'),
     path('like_post/<int:post_id>/', views.like_post, name='like_post'),
     path('remove_like_post/<int:post_id>/', views.remove_like_post, name='remove_like_post'),
+    path('update-feed/', views.update_posts_from_feed, name='update_posts_from_feed'),
+
     
 ]

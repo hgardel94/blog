@@ -23,5 +23,20 @@ class Like(models.Model):
     
     class Meta:
         db_table = 'posts_post_likes'
+        
+
+
+class RSSFeed(models.Model):
+    url = models.URLField()  
+    created_at = models.DateTimeField(auto_now_add=True)  
+
+    def __str__(self):
+        return self.url
+
+    def get_absolute_url(self):
+        return reverse('rss_feed_detail', args=[str(self.id)])
+    
+    
+
 
 

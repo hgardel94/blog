@@ -1,12 +1,18 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Post
+from .models import Post, RSSFeed
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
-from django.http.response import JsonResponse
+from django.http.response import JsonResponse, HttpResponse
 from django.db import IntegrityError
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
+import feedparser
+from django.utils.html import strip_tags
+from django.utils.text import Truncator
+
+
+
 
 
 # Create your views here.
@@ -152,3 +158,46 @@ def remove_like_post(request, post_id):
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
+
+import html  
+
+def update_posts_from_feed(request):
+    # Obtener la URL del feed desde el parámetro GET
+    feed_url = request.GET.get('feed_url', None)
+    
+    if not feed_url:
+        return HttpResponse("No se proporcionó una URL de feed.", status=400)
+    
+    # Procesar el feed RSS
+    feed = feedparser.parse(feed_url)
+    
+    if feed.bozo:
+        return HttpResponse(f"Error al leer el feed: {feed.bozo_exception}", status=400)
+    
+    # Crear los posts a partir del feed
+    for entry in feed.entries:
+        # Verificar si ya existe un post con el mismo título
+        post_exists = Post.objects.filter(title=entry.title).exists()
+        
+        # Si el post no existe, lo creamos
+        if not post_exists:
+            # Limpiar las etiquetas HTML en el título
+            clean_title = strip_tags(entry.title)  # Limpiamos el título de las etiquetas HTML
+
+            # Obtener el resumen (content o summary) y limpiarlo de etiquetas HTML
+            full_summary = entry.summary  # Utilizamos el resumen si está disponible
+            
+            # Limpiar las etiquetas HTML en el resumen
+            clean_summary = strip_tags(full_summary)  # Limpiamos las etiquetas HTML
+
+            # Limpiar las entidades HTML (como &#39;, &nbsp;, etc.)
+            clean_summary = html.unescape(clean_summary)  # Limpiamos las entidades HTML
+            
+            # Crear el post con el contenido limpio
+            Post.objects.create(
+                title=clean_title,  # Guardamos el título limpio
+                content=clean_summary,  # Guardamos el resumen limpio
+                created=entry.published,
+            )
+    
+    return HttpResponse("Posts actualizados desde el feed.")
